@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>一分钟侦探</title>
+<meta name="description" content="每天一案，六十秒。三个人说了三句话，其中一句不该说。">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
+<meta name="theme-color" content="#0B0A09">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="一分钟侦探">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230B0A09'/%3E%3Ccircle cx='30' cy='30' r='12' fill='none' stroke='%23C0392B' stroke-width='5'/%3E%3Cpath d='M39 39 L50 50' stroke='%23C0392B' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  input, textarea { -webkit-user-select: text; user-select: text; }
+  html, body { background: #080706; overflow-x: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #E6DED0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 100%;
+    max-width: 440px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: radial-gradient(120% 80% at 50% 0%, #17130F 0%, #0B0A09 55%, #080706 100%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .vignette {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    background: radial-gradient(115% 75% at 50% 45%, rgba(0,0,0,0) 42%, rgba(0,0,0,.62) 100%);
+  }
+  .grain {
+    position: absolute; inset: 0; pointer-events: none; z-index: 6; opacity: .045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  #app { position: relative; z-index: 7; display: flex; flex-direction: column; flex: 1; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; border-bottom: 1px solid #211D19;
+    position: sticky; top: 0; z-index: 9;
+    background: rgba(11,10,9,.92); backdrop-filter: blur(8px);
+  }
+  .back { font-size: 20px; color: #6E665B; cursor: pointer; line-height: 1; padding-right: 2px; user-select: none; }
+  .back:active { color: #C0392B; }
+  .tag {
+    font-size: 10.5px; letter-spacing: 2px; color: #7E766A;
+    border: 1px solid #2A2521; padding: 3px 8px; border-radius: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stars { font-size: 9px; color: #8A6B2E; letter-spacing: 2px; }
+  .timer {
+    margin-left: auto; font-size: 13px; color: #C0392B;
+    font-variant-numeric: tabular-nums; font-weight: 500; letter-spacing: 1px;
+  }
+  .timer.hot { animation: throb 1s ease-in-out infinite; color: #E24B3A; }
+  @keyframes throb { 0%,100% { opacity: 1; } 50% { opacity: .38; } }
+  .mute {
+    width: 26px; height: 26px; border: 1px solid #2A2521; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #7E766A; cursor: pointer; margin-left: 8px;
+  }
+  .mute:active { border-color: #C0392B; color: #C0392B; }
+
+  .screen { padding: 26px 22px 40px; flex: 1; display: flex; flex-direction: column; animation: fade .4s ease; }
+  @keyframes fade { from { opacity: .3; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .brand-en {
+    font-size: 9.5px; letter-spacing: 7px; color: #A32B1E; margin-top: 28px;
+    font-variant-numeric: tabular-nums;
+  }
+  .brand {
+    font-family: Georgia, "Songti SC", "SimSun", serif;
+    font-size: 34px; letter-spacing: 5px; margin-top: 9px;
+    color: #F2EADC; text-shadow: 0 0 30px rgba(192,57,43,.22);
+  }
+  .brand-sub { font-size: 12.5px; color: #6E665B; margin-top: 12px; line-height: 1.9; letter-spacing: .5px; }
+  .brand-quote {
+    margin-top: 20px; padding-left: 11px; border-left: 2px solid #421C16;
+    font-size: 12px; color: #8A7F71; line-height: 1.85; letter-spacing: .3px;
+    font-family: Georgia, "Songti SC", "SimSun", serif;
+  }
+  .brand-quote span { display: block; color: #524B42; font-size: 11px; font-family: inherit; margin-top: 3px; }
+  .rule { height: 1px; background: linear-gradient(to right, #3A322A, rgba(58,50,42,0)); margin: 24px 0 0; }
+
+  .stat-row { display: flex; gap: 8px; margin-top: 24px; }
+  .stat {
+    flex: 1; background: #14110E; border: 1px solid #262119;
+    border-radius: 4px; padding: 13px 12px;
+  }
+  .stat b { display: block; font-size: 21px; font-weight: 500; font-variant-numeric: tabular-nums; color: #E8DFC9; letter-spacing: .5px; }
+  .stat span { font-size: 10.5px; color: #6E665B; letter-spacing: 1px; }
+
+  .start-btn {
+    margin-top: 26px; background: #A32B1E; color: #F7EFE3; border: none;
+    width: 100%; padding: 18px; border-radius: 4px; font-size: 15px;
+    font-weight: 500; letter-spacing: 4px; cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(192,57,43,.35), 0 8px 30px -12px rgba(192,57,43,.9);
+  }
+  .start-btn:active { background: #8A2318; }
+
+  .archive { margin-top: 32px; }
+  .archive h3 { font-size: 10.5px; color: #6E665B; letter-spacing: 4px; font-weight: 400; margin-bottom: 14px; }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 14px; background: #12100D; border: 1px solid #221E19;
+    border-radius: 4px; margin-bottom: 7px; cursor: pointer; position: relative;
+  }
+  .row:active { background: #191510; border-color: #3A3128; }
+  .row.locked { opacity: .42; }
+  .row .no { font-size: 10px; color: #5C554B; font-variant-numeric: tabular-nums; width: 44px; letter-spacing: 1px; }
+  .row .nm { font-size: 13.5px; flex: 1; color: #D8D0C1; letter-spacing: .5px; }
+  .row .st { font-size: 10.5px; color: #6E665B; letter-spacing: .5px; }
+  .row .st.done { color: #7EA37B; }
+  .row .st.miss { color: #A8564A; }
+
+  .link {
+    text-align: center; font-size: 10.5px; color: #5C554B;
+    letter-spacing: 2px; padding: 16px 0 4px; cursor: pointer;
+  }
+  .bak {
+    width: 100%; height: 66px; margin-top: 8px; border: 1px solid #221E19;
+    border-radius: 4px; background: #12100D; color: #6E665B; font-size: 10.5px;
+    line-height: 1.6; padding: 8px 10px; resize: none; font-family: ui-monospace, Menlo, monospace;
+  }
+
+  .case-title {
+    font-family: Georgia, "Songti SC", "SimSun", serif;
+    font-size: 26px; line-height: 1.4; letter-spacing: 2px; color: #F2EADC;
+  }
+  .case-title::after {
+    content: ""; display: block; width: 34px; height: 2px;
+    background: #A32B1E; margin-top: 14px;
+  }
+  .scene {
+    margin-top: 18px; font-size: 14.5px; line-height: 2.05; color: #B9B0A2;
+    text-align: justify; letter-spacing: .3px;
+  }
+  .clues { margin-top: 26px; }
+  .sec-label {
+    font-size: 10px; letter-spacing: 4px; color: #6E665B; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-label::after { content: ""; flex: 1; height: 1px; background: #221E19; }
+  .clue {
+    display: flex; gap: 11px; font-size: 13.5px; line-height: 1.75; color: #A9A093;
+    padding: 10px 12px; margin-bottom: 6px; background: #100E0B;
+    border-left: 2px solid #2E2822; border-radius: 0 3px 3px 0;
+    animation: rise .5s ease backwards;
+  }
+  .clue:nth-child(2) { animation-delay: .08s; }
+  .clue:nth-child(3) { animation-delay: .16s; }
+  .clue:nth-child(4) { animation-delay: .24s; }
+  @keyframes rise { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+  .clue i {
+    font-style: normal; color: #A32B1E; font-size: 10px; padding-top: 4px;
+    flex-shrink: 0; font-variant-numeric: tabular-nums; letter-spacing: 1px;
+  }
+
+  .quotes { margin-top: 28px; }
+  .quote {
+    background: #14110E; border: 1px solid #262119; border-left: 2px solid #262119;
+    border-radius: 4px; padding: 14px 16px; margin-bottom: 9px; cursor: pointer;
+    transition: border-color .2s, background .2s, box-shadow .2s, transform .12s;
+  }
+  .quote:active { transform: scale(.994); }
+  .quote.sel {
+    border-color: #A32B1E; border-left-color: #E24B3A; background: #1C100D;
+    box-shadow: 0 0 26px -6px rgba(192,57,43,.55), inset 0 0 32px -18px rgba(226,75,58,.8);
+  }
+  .q-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .q-name { font-size: 14px; font-weight: 500; color: #E8DFC9; letter-spacing: 1px; }
+  .q-role { font-size: 10.5px; color: #6E665B; letter-spacing: 1px; }
+  .q-line { font-size: 14px; line-height: 1.8; color: #ADA395; }
+  .quote.sel .q-line { color: #E8B4A8; }
+
+  .confirm {
+    position: sticky; bottom: 0; padding: 16px 0 22px; margin-top: auto;
+    background: linear-gradient(to top, #0B0A09 62%, rgba(11,10,9,0));
+  }
+  .confirm button {
+    width: 100%; border: 1px solid #262119; border-radius: 4px; padding: 16px;
+    font-size: 14px; font-weight: 500; letter-spacing: 3px;
+    background: #100E0B; color: #5C554B; cursor: default; transition: all .25s;
+  }
+  .confirm button.on {
+    background: #A32B1E; color: #F7EFE3; border-color: #A32B1E; cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(192,57,43,.4), 0 10px 34px -14px rgba(192,57,43,.95);
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100% { box-shadow: 0 0 0 1px rgba(192,57,43,.35), 0 10px 34px -16px rgba(192,57,43,.65); } 50% { box-shadow: 0 0 0 1px rgba(226,75,58,.7), 0 10px 40px -10px rgba(226,75,58,.95); } }
+  .confirm button.on:active { background: #8A2318; }
+
+  .verdict { text-align: center; padding-top: 30px; }
+  .verdict .big {
+    font-family: Georgia, "Songti SC", "SimSun", serif;
+    font-size: 36px; letter-spacing: 8px; color: #E24B3A;
+    text-shadow: 0 0 34px rgba(226,75,58,.45);
+    animation: slam .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  .verdict .big.fail { color: #8A8378; text-shadow: none; }
+  @keyframes slam { from { opacity: 0; transform: scale(1.25); letter-spacing: 20px; } to { opacity: 1; transform: none; } }
+  .verdict .sub { font-size: 12px; color: #6E665B; margin-top: 14px; letter-spacing: 1.5px; }
+
+  .block {
+    margin-top: 22px; background: #12100D; border: 1px solid #221E19;
+    border-radius: 4px; padding: 16px 17px; border-left: 2px solid #2E2822;
+  }
+  .block.key { border-left-color: #A32B1E; }
+  .block .lbl { font-size: 10px; letter-spacing: 4px; color: #C0503F; margin-bottom: 10px; }
+  .block .lbl.gray { color: #6E665B; }
+  .block p { font-size: 13.5px; line-height: 1.95; color: #B9B0A2; text-align: justify; }
+
+  .share {
+    margin-top: 22px; background: #0A0908; border: 1px solid #2A2521;
+    border-radius: 4px; padding: 22px 20px;
+  }
+  .share .sh-no { font-size: 10px; letter-spacing: 3px; color: #5C554B; }
+  .share .sh-big {
+    font-family: Georgia, "Songti SC", serif; font-size: 24px;
+    margin-top: 12px; letter-spacing: 1px; color: #E8DFC9;
+  }
+  .share .sh-note { font-size: 11px; color: #5C554B; margin-top: 12px; line-height: 1.8; }
+
+  .actions { margin-top: 22px; display: flex; gap: 9px; }
+  .actions button {
+    flex: 1; padding: 16px; border-radius: 4px; font-size: 14px;
+    font-weight: 500; letter-spacing: 2px; border: 1px solid #262119; cursor: pointer;
+    background: #100E0B; color: #8A8378;
+  }
+  .actions .primary { background: #A32B1E; color: #F7EFE3; border-color: #A32B1E; }
+  .actions button:active { opacity: .85; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="vignette"></div>
+  <div class="grain"></div>
+  <div id="app"></div>
+</div>
+
+<script>
+/* 一分钟侦探 · 案件库
+   规则：每个案子只有一个能一击致命的破绽（一句话 × 一条线索）。
+   tier：1 事实矛盾 / 2 物理不可能 / 3 物证反打 / 4 语言漏洞 */
+
+const CASES = [
+  {
+    id: "C-001", title: "雨夜的便利店", tier: 1,
+    scene: "凌晨 2:14，便利店店员小周被发现倒在收银台后。店门从里面反锁，只有一扇后门通向后巷。后巷的地面，是干的。",
+    clues: ["凌晨 2:05，小周还在给朋友发消息。", "收银机里的现金，一分没少。", "后门只能从里面推开，推开时会响一声门铃。"],
+    suspects: [
+      { name: "张恒", role: "隔壁网吧老板", line: "我两点前就回网吧了，之后一步没踏出去。" },
+      { name: "李岚", role: "常客", line: "我买了包烟就走了，走的时候他还好好的。" },
+      { name: "王德发", role: "清洁工", line: "我在后巷扫地，扫到一半下雨了，就躲到网吧屋檐底下。" }
+    ],
+    guilty: 2,
+    flaw: "后巷的地面是干的 —— 那晚根本就没下过雨。",
+    truth: "王德发没有在后巷扫过地。他从后门进了店里，被小周撞见后动了手，再从后门离开。为了让自己的行踪听起来合理，他给那晚加了一场雨 —— 一场只有他一个人记得的雨。",
+    motive: "他欠了赌债，早就摸清这家店凌晨只有一个店员值班。"
+  },
+  {
+    id: "C-002", title: "停电的十楼", tier: 2,
+    scene: "晚上 9:40，十楼住户回家发现保险柜被撬，现金被洗劫一空。楼里在 21:00 到 21:35 之间停过电，电梯和楼道灯全部停摆。",
+    clues: ["保险柜有七十斤重，一个人搬不动。", "楼梯间的消防门只能从里往外推。", "停电期间，配电室的门一直开着。"],
+    suspects: [
+      { name: "老赵", role: "楼下邻居", line: "停电那会儿我在楼下打牌，一直没上来过。" },
+      { name: "小陈", role: "物业维修", line: "我九点二十上去看过电闸，坐的电梯。" },
+      { name: "林女士", role: "对门邻居", line: "我在卧室用手机看剧，什么也没听见。" }
+    ],
+    guilty: 1,
+    flaw: "停电从 21:00 持续到 21:35，这三十五分钟里电梯是停的 —— 九点二十，他坐不上去。",
+    truth: "停电是他自己拉的闸。他要的不是黑暗，是一个「电梯和监控都记不到我」的三十五分钟。他等的就是这段时间，才敢上楼。",
+    motive: "他有整栋楼的万能钥匙，也知道这户人家每周三取现金。"
+  },
+  {
+    id: "C-003", title: "后台的奖盒", tier: 3,
+    scene: "公司年会抽奖前，一等奖的钻戒不翼而飞。奖盒一直放在后台化妆间，当晚只有三个人进出过，门口的监控拍到了每一次进出。",
+    clues: ["三个人的进出记录各只有一次，没有人折返。", "化妆间没有窗户，通风口窄得塞不进手。", "监控画面里，场务进门的时候，两只手是空的。"],
+    suspects: [
+      { name: "周琳", role: "主持人", line: "我进去补了个妆，五分钟就出来了。" },
+      { name: "高鹏", role: "场务", line: "我进去把奖盒放在桌上，转身就出来了。" },
+      { name: "小吴", role: "实习生", line: "我进去找我的伞，找到就走了。" }
+    ],
+    guilty: 1,
+    flaw: "他进门时两手空空 —— 那「把奖盒放进去」这件事，从头到尾就没有发生过。",
+    truth: "奖盒从来没进过化妆间，是他在监控死角把它换掉的。他自己编了一句「我放进去了」，等于亲手替自己造了一个不在场证明 —— 也亲手留下了破绽。",
+    motive: "他提前知道了奖品是什么，也提前算好了监控的角度。"
+  },
+  {
+    id: "C-004", title: "仓库的火", tier: 4,
+    scene: "凌晨 3 点，城郊仓库起火。天亮后，消防在灰烬里挖出一具尸体。警方还没来得及确认死者身份，也没有对外通报任何消息。",
+    clues: ["仓库只有一个门，起火时是从外面锁着的。", "现场没有找到任何能证明身份的东西。", "火是从仓库最里面烧起来的，门口没有助燃痕迹。"],
+    suspects: [
+      { name: "老马", role: "守夜人", line: "我三点被烟呛醒，跑出来的时候火已经压不住了。" },
+      { name: "郑总", role: "仓库主管", line: "我接到电话赶过来，听说里面还有人没出来。" },
+      { name: "小刘", role: "夜班司机", line: "我开车路过看见火光，停下来看了会儿就走了。" }
+    ],
+    guilty: 1,
+    flaw: "警方都还没确认里面有人。「听说」这两个字，只能来自他自己。",
+    truth: "在所有人知道之前，他就已经知道了。因为他不是听说，他是知道 —— 锁门、点火、走人，都是他做的。他特意加了「听说」两个字，想让这句话听起来像个外人说的。",
+    motive: "仓库里堆的是他私吞的货，那个死者是来对账的。"
+  },
+  {
+    id: "C-005", title: "断电的下午", tier: 1,
+    scene: "盛夏，独居男人被发现倒在客厅。死亡时间是下午三点。屋里的空调开着，温度定在 16 度。",
+    clues: ["小区下午两点到五点停电。", "屋里所有窗户都关着。", "他手机最后一条消息发在 14:50。"],
+    suspects: [
+      { name: "老周", role: "表哥", line: "我中午给他送过饭，那时候他还好好的。" },
+      { name: "陈姐", role: "邻居", line: "下午我一直听见他家空调外机在响。" },
+      { name: "小刘", role: "快递员", line: "我三点半敲门，没人应。" }
+    ],
+    guilty: 1,
+    flaw: "下午两点到五点停电，空调外机不可能在响。",
+    truth: "陈姐在那三个小时里进过这间屋子。为了让自己的行踪显得无关紧要，她编了一句「我一直在家听见空调响」——她忘了，那三个小时，整栋楼安静得能听见自己的呼吸。",
+    motive: "两家为一堵墙的产权，吵了三年。"
+  },
+  {
+    id: "C-006", title: "婚礼的空台", tier: 1,
+    scene: "婚礼进行到一半，新娘的钻戒在化妆间不见了。仪式期间，进出过那间屋子的只有三个人。",
+    clues: ["化妆间的门锁坏了，一直没修。", "钻戒最后一次出现，是仪式开始前。", "摄影师从仪式开始一直录到结束。"],
+    suspects: [
+      { name: "苏蔓", role: "伴娘", line: "仪式一开始我就上台了，一直在台上站着。" },
+      { name: "阿凯", role: "化妆师", line: "我补完妆就退到后台了，妆台都没碰。" },
+      { name: "王阿姨", role: "新娘母亲", line: "我在化妆间坐了一会儿，跟人说了几句话。" }
+    ],
+    guilty: 0,
+    flaw: "摄影师的素材里，仪式全程台上只有新娘和新郎两个人。",
+    truth: "苏蔓一直待在化妆间里。那句「我一直在台上」，是这场婚礼上唯一一句谎话——因为她需要一个「有人全程看着我」的位置，而她比谁都清楚，那盘带子会从头录到尾。",
+    motive: "她替新娘垫了三万块，一直没要回来。"
+  },
+  {
+    id: "C-007", title: "闭馆之后", tier: 1,
+    scene: "闭馆后的图书馆，管理员发现珍藏室一本古籍被毁掉了几页。当晚闭馆时，馆内还剩三个人。",
+    clues: ["珍藏室的门禁记录，只有管理员刷过。", "23 点后全馆断电，只剩应急灯。", "被毁的书页边缘齐整，像被刀裁过。"],
+    suspects: [
+      { name: "小林", role: "学生", line: "我在二楼自习区看书，一直没动。" },
+      { name: "周老师", role: "值班员", line: "我十一点巡过一圈，听见有人撕书。" },
+      { name: "老吴", role: "保洁", line: "我打扫到二楼，没上过三楼。" }
+    ],
+    guilty: 1,
+    flaw: "书页是用刀裁下来的，边缘齐整 —— 根本不会有「撕」的声音。",
+    truth: "那一页是拿美工刀裁的，裁纸不会出声。他需要让人相信：案发那一刻他在现场，而且他只是「听见」。一个听见的人，不会是被怀疑的人。",
+    motive: "那本书里记着他祖上的名字，他想抹掉。"
+  },
+  {
+    id: "C-008", title: "打烊之后", tier: 1,
+    scene: "餐厅打烊后，收银台里的现金不见了。抽屉没有被撬，是用钥匙打开的。",
+    clues: ["收银台的钥匙只有一把。", "当晚后厨只剩三个人。", "监控在 22:10 到 22:40 之间断过电。"],
+    suspects: [
+      { name: "老赵", role: "主厨", line: "我十点半走的，钥匙一直挂在后厨墙上。" },
+      { name: "小敏", role: "服务员", line: "我一直在前厅收拾，没进过后厨。" },
+      { name: "阿杰", role: "学徒", line: "我在后厨洗盘子，一直没出去。" }
+    ],
+    guilty: 0,
+    flaw: "那把钥匙只有一把，那晚一直系在他自己的裤腰上。",
+    truth: "「钥匙挂在墙上」是一个精心设计的暗示：他想让所有人相信钥匙是公共的，谁都能拿。可那天他一直把钥匙拴在裤腰上，连洗手都没解下来过。",
+    motive: "他赌球输了一笔钱，第二天就要还。"
+  },
+  {
+    id: "C-009", title: "天台", tier: 2,
+    scene: "写字楼天台，有人坠楼身亡。通往天台的门是锁着的，钥匙只有安保有。当晚下过雨，天台地面很滑。",
+    clues: ["天台围栏有一米二高。", "死者的鞋底干干净净。", "门锁没有被撬动的痕迹。"],
+    suspects: [
+      { name: "老陈", role: "安保", line: "我十点上天台锁的门，上面一个人都没有。" },
+      { name: "大刘", role: "同事", line: "我加完班就走了，没上去过。" },
+      { name: "周师傅", role: "物业", line: "我整晚都在一楼值班室。" }
+    ],
+    guilty: 0,
+    flaw: "天台地面是湿的，他的鞋底却干净得像刚出门。",
+    truth: "他确实十点上去过——不是去锁门，是去把人推下去，然后下楼，把鞋擦干净。他知道那扇门只有一把钥匙，也知道所有人都会困在同一个问题里：门锁着，人是怎么上去的。答案一直在他自己身上。",
+    motive: "死者手里攥着他挪用公款的账。"
+  },
+  {
+    id: "C-010", title: "雪停之后", tier: 2,
+    scene: "雪停后的清晨，仓库门口停着一辆货车。司机说他是凌晨到的，在车里睡了一夜。",
+    clues: ["雪在凌晨两点停。", "车辙上盖着一层雪，没有新压过的痕迹。", "仓库八点才开门。"],
+    suspects: [
+      { name: "老宋", role: "司机", line: "我两点半到的，在车里睡了一夜。" },
+      { name: "小徐", role: "装卸工", line: "我八点来上班，车已经在那儿了。" },
+      { name: "老李", role: "门卫", line: "我整晚没见有车开进来。" }
+    ],
+    guilty: 0,
+    flaw: "雪两点就停了，车辙却被雪盖住了 —— 这车在雪停之前就停在这儿。",
+    truth: "他昨晚九点就到了。他需要一个「我凌晨才到」的时间，因为九点到两点之间那五个小时里发生的事，只有他一个人清楚。他以为自己抓住的是天气，其实是天气抓住了他。",
+    motive: "仓库丢的那批货，是他和别人一起搬走的。"
+  },
+  {
+    id: "C-011", title: "九点四十七分", tier: 3,
+    scene: "酒店十楼，一位客人报案说房间进了贼。房门是电子锁，只有房卡能开。",
+    clues: ["电子锁记录：当晚只有两张卡开过这扇门。", "一张是客人的，19:20 出去吃饭。", "另一张是清洁卡，开锁时间 21:47。"],
+    suspects: [
+      { name: "郑先生", role: "住客", line: "我七点半下楼吃饭，九点回来东西就没了。" },
+      { name: "兰姐", role: "清洁员", line: "我八点就下班回家了，之后没再来过。" },
+      { name: "小周", role: "前台", line: "我整晚都在大堂，没上去过。" }
+    ],
+    guilty: 1,
+    flaw: "那张清洁卡在 21:47 刷开过房门 —— 而她八点就下班了。",
+    truth: "卡是她的，人也是她。下班时她把卡揣进了口袋，而不是交回前台。她算准了这位客人每天七点半下楼吃饭，也算准了没有人会去查一张清洁卡的记录。",
+    motive: "她干了六年，知道哪几间房的客人会带现金。"
+  },
+  {
+    id: "C-012", title: "凉了的锅", tier: 2,
+    scene: "小饭馆后厨，老板被发现倒在地板上。当晚店里只剩三个人。",
+    clues: ["后厨的灶是熄的，那口锅还是凉的。", "墙上的挂钟停在 21:10。", "三个人都说，21 点前后还在忙着炒菜。"],
+    suspects: [
+      { name: "阿强", role: "厨师", line: "我炒完最后一锅就走了，锅那时候还是烫的。" },
+      { name: "小美", role: "服务员", line: "我在前厅擦桌子，听见后厨一直在响。" },
+      { name: "老黄", role: "供货商", line: "我九点半来送过货，敲门没人应。" }
+    ],
+    guilty: 0,
+    flaw: "那口锅是凉的 —— 灶火早就熄了，根本不存在「最后一锅」。",
+    truth: "他说锅是烫的，想证明自己 21 点还在这儿炒菜。可那口锅凉得彻底，灶膛里连余温都没有。他不是走得太晚，他是根本没在炒菜 —— 他一直等在门后面。",
+    motive: "老板扣了他半年工钱，说年底一起结。"
+  },
+  {
+    id: "C-013", title: "微波炉里的饭", tier: 1,
+    scene: "出租屋，一名男子被发现倒在厨房。法医判断死亡时间是晚上八点左右。",
+    clues: ["微波炉里有一份饭，还是温的。", "微波炉的定时盘停在 5 分钟。", "他独居，从不下厨。"],
+    suspects: [
+      { name: "阿雯", role: "女友", line: "我七点给他送了饭，放门口就走了。" },
+      { name: "老杨", role: "房东", line: "我八点半来收租，敲门没人应。" },
+      { name: "小顾", role: "邻居", line: "我整晚在家，没听见什么动静。" }
+    ],
+    guilty: 0,
+    flaw: "那份饭被放进微波炉热过五分钟 —— 而她说是放在门口走的。",
+    truth: "饭在微波炉里，而且是热的。它被端进屋、被放进炉子、被按下五分钟 —— 这一整套动作，不可能发生在门外。她说「放门口就走了」，可门口不会长出一台微波炉。",
+    motive: "她来要回那把备用钥匙，他不给。"
+  },
+  {
+    id: "C-014", title: "鞋底的沙", tier: 1,
+    scene: "海边公寓，一位住户失踪三天后被发现死在城郊。警方上门问话。",
+    clues: ["公寓离海三公里，附近没有沙滩。", "玄关那双鞋的鞋底，沾着湿沙。", "他妻子说，那天他一整天没出过门。"],
+    suspects: [
+      { name: "林茵", role: "妻子", line: "他那天一整天都在家，没出过门。" },
+      { name: "老赵", role: "门卫", line: "我那天没见他出去过。" },
+      { name: "小陈", role: "同事", line: "他那天没来上班，我以为他病了。" }
+    ],
+    guilty: 0,
+    flaw: "那双鞋底上沾着湿沙 —— 而这栋楼离海有三公里。",
+    truth: "她说他一整天没出门。可玄关那双鞋的鞋底是湿沙，沙还粘在上面没干透。他出去过，去了海边，而且回来得很匆忙 —— 匆忙到连鞋都没擦。她替他抹掉了那一天，却没抹掉那双鞋。",
+    motive: "她在他的手机里发现了另一个人的名字。"
+  },
+  {
+    id: "C-015", title: "还热着的纸", tier: 2,
+    scene: "一份合同在夜里被人改动并重新打印。第二天早上被发现时，那张纸还是温的。",
+    clues: ["打印机在凌晨 2 点工作过。", "办公室里没有暖气。", "三个人都说自己那晚没回过公司。"],
+    suspects: [
+      { name: "老吴", role: "部门经理", line: "我整晚在楼下应酬，走的时候把打印机关了。" },
+      { name: "小林", role: "助理", line: "我钥匙落在工位了，但我没回去拿。" },
+      { name: "老张", role: "保安", line: "我整夜都在大厅，没人进来。" }
+    ],
+    guilty: 0,
+    flaw: "打印机在凌晨两点还工作过 —— 而他说，他走的时候把它关了。",
+    truth: "关掉一台打印机，和让它重新转起来，中间隔着一次开机、一次送纸、一次按下确认。他说他关了它，那就等于说：凌晨两点，有另一个人替他把手按在了那个按钮上。",
+    motive: "那份合同的金额，改一个数字就够他翻身。"
+  },
+  {
+    id: "C-016", title: "门外的拖鞋", tier: 1,
+    scene: "合租公寓，一位室友在房间内被害。当晚公寓里只剩三个人。",
+    clues: ["死者房间门口摆着一双拖鞋，鞋头朝外。", "他的习惯是进门脱鞋，鞋头朝里。", "另外两个人都说，那晚没进过他房间。"],
+    suspects: [
+      { name: "阿泽", role: "室友", line: "他一整晚都在房间里，没出来过。" },
+      { name: "小敏", role: "室友", line: "我十点回房就没再出来。" },
+      { name: "陈叔", role: "房东", line: "我在楼下，没上去过。" }
+    ],
+    guilty: 0,
+    flaw: "那双拖鞋的鞋头朝外 —— 只有准备出门的人，才会把鞋摆成这个方向。",
+    truth: "他说他一整晚没出来。可门口那双拖鞋，鞋头朝外 —— 那是穿鞋准备出去的人才有的摆法。他出过门。而替他把鞋摆回去的人，正是最需要他「一直待在房间里」的那个人。",
+    motive: "那间房里丢的东西，本来就在阿泽手上。"
+  },
+  {
+    id: "C-017", title: "雪地里的脚印", tier: 2,
+    scene: "山间木屋，一名猎人被发现死在屋外的雪地里。雪是半夜停的。",
+    clues: ["雪地上有两行脚印，一来一回。", "屋门从里面闩着，没有撬痕。", "死者穿着睡衣，赤着脚。"],
+    suspects: [
+      { name: "老葛", role: "同伴", line: "我一直在屋里睡觉，早上才发现他不见的。" },
+      { name: "王伯", role: "屋主", line: "我昨晚就下山了，没住这儿。" },
+      { name: "小赵", role: "路人", line: "我早上路过，看见他躺在那儿。" }
+    ],
+    guilty: 0,
+    flaw: "他是赤着脚死的 —— 那两行穿靴子的脚印，一步都不是他的。",
+    truth: "雪地上明明有两行靴印，一来一回。可那个人是赤脚出去的 —— 也就是说，走出去又走回来的那双靴子，属于还活着的人。门是从里面闩上的，那个闩门的人，只能是他。",
+    motive: "山下那笔钱，两个人分了三年，他想一个人拿。"
+  },
+  {
+    id: "C-018", title: "干着的伞", tier: 1,
+    scene: "雨夜，一家便利店被抢。店员说，劫匪是刚从外面冲进来的。",
+    clues: ["外面下了一整夜的雨。", "收银台旁那把伞，伞面是干的。", "那把伞是店里的备用伞。"],
+    suspects: [
+      { name: "小唐", role: "店员", line: "他冲进来的时候，我吓坏了，什么也没看清。" },
+      { name: "老许", role: "常客", line: "我进来买包烟，店里就他一个人。" },
+      { name: "周姐", role: "店长", line: "我那天不在店里，回家很早。" }
+    ],
+    guilty: 0,
+    flaw: "那把伞是店里的备用伞，伞面还是干的 —— 所谓「从雨里冲进来」的人，根本没淋过雨。",
+    truth: "钱是他自己拿走的。他需要一个外面的人，所以编了一个「从雨里冲进来」的劫匪 —— 可那晚的雨，会把任何一个从外面进来的人浇透，包括那把伞。",
+    motive: "他欠了网贷，还款日就在后天。"
+  },
+  {
+    id: "C-019", title: "停在两点四十", tier: 3,
+    scene: "一间钟表铺，店主被发现死在柜台后。他戴的那块表摔在地上，停在 2:40。",
+    clues: ["法医判断死亡时间在晚上十点到十一点。", "那块表是机械表，没有电池。", "表带的扣眼，比他手腕松出两格。"],
+    suspects: [
+      { name: "小陆", role: "学徒", line: "我九点就关灯走了，门是我锁的。" },
+      { name: "何先生", role: "顾客", line: "我十点来取表，门已经锁了。" },
+      { name: "老孙", role: "供货商", line: "我十点半路过，里面灯还亮着。" }
+    ],
+    guilty: 0,
+    flaw: "表停在两点四十，可表带的扣眼比他手腕松出两格 —— 有人把它摘下来，拨过，再戴回去。",
+    truth: "那块表本该停在十点半。有人需要它停在凌晨两点四十，好让「十点半他还在店里」这件事，变成一件不可能发生的事。他算准了所有人都会相信一块表，却没算到自己的手腕比原来细了两格。",
+    motive: "铺子里那批货的来路，只有两个人知道。"
+  },
+  {
+    id: "C-020", title: "借出去的车", tier: 3,
+    scene: "环城路上，一辆轿车撞上护栏，司机当场死亡。事发凌晨三点，路段没有监控。",
+    clues: ["驾驶座被调得很靠后。", "死者身高一米六。", "车主身高一米八五，车是他借给死者的。"],
+    suspects: [
+      { name: "大冯", role: "车主", line: "我把车借给他了，那晚我在家睡觉。" },
+      { name: "阿静", role: "死者妻子", line: "他一早就出门了，说是去外地。" },
+      { name: "老康", role: "路过司机", line: "我经过的时候，车里只有一个人。" }
+    ],
+    guilty: 0,
+    flaw: "座椅是按一个一米八五的人调的 —— 开车的那个人，不是他。",
+    truth: "借车的人说他把车交出去了，可他忘了把座位调回来。驾驶座上坐着的，是一个身高不对的人。他没有把车借出去，他只是把一个人放进了那辆车。",
+    motive: "车登记在他名下，出事之后，保险赔的是他。"
+  },
+  {
+    id: "C-021", title: "两份外卖", tier: 2,
+    scene: "一间单身公寓，一名女子在屋内遇害。死亡时间是前一晚八点左右。",
+    clues: ["桌上摆着两份外卖，都拆开了。", "两双筷子都用过。", "她独居，从不留人过夜。"],
+    suspects: [
+      { name: "阿凯", role: "男友", line: "我那天没去过她那儿，一整晚都在家。" },
+      { name: "老徐", role: "同事", line: "我们只是同事，平时不怎么来往。" },
+      { name: "小马", role: "外卖员", line: "我只送过一份，放门口就走了。" }
+    ],
+    guilty: 0,
+    flaw: "两份外卖都被拆开，两双筷子都动过 —— 那晚屋里不是她一个人。",
+    truth: "他说他没去过。可桌上是两份拆开的饭，两双筷子都下了口。她说自己从不留人过夜，所以那个坐下来、拆开筷子、跟她一起吃完这顿饭的人，一定不是客人 —— 是那个有资格留下来的人。",
+    motive: "她提了分手，就在那天下午。"
+  },
+  {
+    id: "C-022", title: "少了的药", tier: 3,
+    scene: "一位老人独居，儿子每周来一次。这天邻居发现老人已经去世多日。",
+    clues: ["药盒里少了三粒药，是最近三天的量。", "老人手抖得厉害，一直由儿子分药。", "邻居说这三天没见有人来过。"],
+    suspects: [
+      { name: "阿勇", role: "儿子", line: "我这周太忙，一直没过来。" },
+      { name: "老宋", role: "邻居", line: "我每天路过，没见人进他家。" },
+      { name: "小霞", role: "护工", line: "我上个月就辞职了，之后没再去过。" }
+    ],
+    guilty: 0,
+    flaw: "药少了三粒，一天一粒 —— 可这三天，没有一个人进过这扇门。",
+    truth: "药是被分好、递到他手里的。老人手抖得连药盒都打不开，这三天却一粒不落地吃了。他说他没来过，可那三粒药，是他亲手放进去的。",
+    motive: "老人的房子，下周就要过户了。"
+  },
+  {
+    id: "C-023", title: "杯沿上的口红", tier: 3,
+    scene: "一场酒会，一位商人喝了半杯香槟后晕倒，送医不治。",
+    clues: ["他晕倒前只喝过那一杯。", "杯沿上有一枚口红印。", "当晚只和三个人说过话。"],
+    suspects: [
+      { name: "苏秘书", role: "秘书", line: "我酒精过敏，一口都没碰过那杯酒。" },
+      { name: "老薛", role: "合伙人", line: "我陪他喝了两杯，聊的都是公事。" },
+      { name: "小丁", role: "服务生", line: "我只负责递酒，别的没管。" }
+    ],
+    guilty: 0,
+    flaw: "口红印印在杯沿的饮用位置上 —— 那不是碰过，是喝过。",
+    truth: "她说她一口都没碰。可那枚口红印不偏不倚，正印在杯沿最该出现的位置 —— 只有把杯子举到嘴边的人，才会留下这样的痕迹。她不是碰了那只杯子，她是从那只杯子里喝过。",
+    motive: "那份股权协议，签下去她一分钱都拿不到。"
+  },
+  {
+    id: "C-024", title: "沙哑的嗓子", tier: 4,
+    scene: "一间画室，一位画家被发现倒在地上，已经没有呼吸。现场没有打斗痕迹。",
+    clues: ["他的喉咙有旧伤，说话一直是气声。", "当晚只有三个人来过画室。", "门是从里面锁上的。"],
+    suspects: [
+      { name: "阿禾", role: "学生", line: "我听见他跟人吵架，声音特别大。" },
+      { name: "郑姐", role: "邻居", line: "我路过的时候，他在打电话。" },
+      { name: "马先生", role: "画商", line: "我来的时候，他已经倒在地上了。" }
+    ],
+    guilty: 0,
+    flaw: "他的喉咙有旧伤，说话一直是气声 —— 不可能「声音特别大」。",
+    truth: "她说她听见两个人在吵架。可这个人说话从来只有气声，连打电话都要把手机贴到嘴边。她听见的「特别大的声音」，其实是她自己希望别人相信的那个版本。",
+    motive: "那幅画署的是老师的名字，画的人是她。"
+  },
+  {
+    id: "C-025", title: "昨天的约定", tier: 4,
+    scene: "一名快递员在送货途中失联，三天后被发现死亡。警方确认死亡时间是失联当天傍晚六点。",
+    clues: ["死亡时间：三天前的 18 点左右。", "他的手机在第二天早上还有过解锁记录。", "他的电动车停在城郊的路边。"],
+    suspects: [
+      { name: "老邢", role: "同事", line: "他昨天还跟我说，今天要早点收工。" },
+      { name: "周站长", role: "站长", line: "他失联那天我打过电话，没人接。" },
+      { name: "林女士", role: "客户", line: "我那天下午还收到过他送的快递。" }
+    ],
+    guilty: 0,
+    flaw: "他三天前就死了 —— 哪来的「昨天还跟我说」。",
+    truth: "那句「昨天」，是那个人还活着的昨天。可他三天前就已经不在了，这句话只能来自一个地方：他自己编的。他需要这个人看起来还活着，至少活到他给出那个地址之后。",
+    motive: "最后一单的地址，是他给的。"
+  },
+  {
+    id: "C-026", title: "一声名字", tier: 4,
+    scene: "一场同学聚会散场后，一位参加者在停车场被发现死亡。当晚下着小雨，停车场没有灯。",
+    clues: ["他是从背后被钝器击中后脑。", "一击致命，没有任何反抗痕迹。", "现场很暗，几乎是全黑的。"],
+    suspects: [
+      { name: "老班长", role: "组织者", line: "我走的时候他还在跟人说话。" },
+      { name: "小林", role: "同学", line: "我听见有人喊我的名字，一回头就看见他倒了。" },
+      { name: "阿May", role: "同学", line: "我们十几年没见，我差点没认出他。" }
+    ],
+    guilty: 1,
+    flaw: "那一击是当场致命的 —— 他连声音都没来得及发出，更不可能喊出谁的名字。",
+    truth: "小林说他听见有人喊他的名字。可那一击落在后脑，人当场就没了，连一声闷哼都留不下。那声「小林」，不是死者喊的 —— 是站在他背后、举着东西的那个人，在喊给自己听。",
+    motive: "十年前那场事故，只有他们两个知道真相。"
+  },
+  {
+    id: "C-027", title: "反锁的冷库", tier: 3,
+    scene: "一间冷库，一名工人被发现冻死在里头。冷库的门是从外面锁上的。",
+    clues: ["冷库门内侧有应急开门装置，完好可用。", "冷库钥匙只有一把。", "死者只穿了一件单衣。"],
+    suspects: [
+      { name: "老曹", role: "班长", line: "我下班前检查过，里面没人。" },
+      { name: "小傅", role: "同事", line: "他自己进去拿货，我们都不知道。" },
+      { name: "钱老板", role: "老板", line: "钥匙只有我有，可我没锁过门。" }
+    ],
+    guilty: 2,
+    flaw: "钥匙只有一把，那扇门又是从外面锁上的 —— 能锁上它的人，只有他。",
+    truth: "他说钥匙只有他有，可他没有锁过门。这句话本身就说不通：门锁着，钥匙只有一把，锁门的人只能是他。他把一件不可能发生的事，说得像一场意外。",
+    motive: "那个工人手里有他克扣工钱的账本。"
+  },
+  {
+    id: "C-028", title: "已接通的电话", tier: 4,
+    scene: "一位独居老人被发现死在家中。法医判断死亡时间是当天下午。",
+    clues: ["他的手机放在客厅茶几上。", "通话记录显示，当晚 23:00 有一通电话是「已接听」。", "来电人是他儿子。"],
+    suspects: [
+      { name: "阿勇", role: "儿子", line: "我晚上给他打过电话，没人接。" },
+      { name: "老宋", role: "邻居", line: "我那天没见他出门。" },
+      { name: "小林", role: "社区工作者", line: "我们每周上门一次，这周还没到。" }
+    ],
+    guilty: 0,
+    flaw: "通话记录上写着「已接听」—— 可那个时间，他已经不在了。",
+    truth: "他说他打过去没人接。可记录上明明白白写着接听，还通了四十秒。那个按下接听键的人，就在这间屋子里 —— 他要让所有人相信，父亲在晚上十一点还活着。",
+    motive: "老人的存折，三天前被取空了。"
+  },
+  {
+    id: "C-029", title: "停电的走廊", tier: 2,
+    scene: "一栋老楼停电的二十分钟里，一位住户家中的现金被拿走。楼道一片漆黑。",
+    clues: ["停电期间，整栋楼只有应急灯亮着。", "被偷的那户人家，门锁完好。", "电闸箱的钥匙，只有业委会有。"],
+    suspects: [
+      { name: "老梁", role: "楼上住户", line: "停电了我一直在屋里点蜡烛。" },
+      { name: "小高", role: "楼下住户", line: "我下楼去看过电闸，没看出毛病就上来了。" },
+      { name: "老周", role: "门卫", line: "我在门口守着，没人进出。" }
+    ],
+    guilty: 1,
+    flaw: "电闸箱锁得好好的 —— 他说他去看过电闸，可他根本打不开那个箱子。",
+    truth: "他说他去看了电闸，没看出毛病。可电闸箱的钥匙只在业委会手里，而他正好是业委会的人。那二十分钟的黑，是他自己给的 —— 因为只有电工和业委会，才知道整栋楼会黑多久。",
+    motive: "他欠了楼上一整年的物业费，也欠了一身债。"
+  },
+  {
+    id: "C-030", title: "哑了的呼喊", tier: 4,
+    scene: "一栋居民楼夜里起火，一名住户被发现死在卧室。消防认定起火点在客厅。",
+    clues: ["死者是先天性聋哑，从小没有说过话。", "起火时邻居都在楼下。", "客厅的插座烧得最厉害。"],
+    suspects: [
+      { name: "老包", role: "邻居", line: "我听见他在里面喊救命，嗓子都喊哑了。" },
+      { name: "吴姐", role: "房东", line: "我接到电话才赶过来。" },
+      { name: "小唐", role: "同事", line: "我那天没见过他。" }
+    ],
+    guilty: 0,
+    flaw: "他是先天性聋哑，这辈子没有发出过一个字 —— 没有人能「听见他喊救命」。",
+    truth: "他说他听见了喊声，还说嗓子都喊哑了。可这个人从出生起就没说过话。那句话不是听见的，是他自己站在这栋楼里，看着火，编出来的。",
+    motive: "那间屋子的租约上，写的是他的名字。"
+  }
+];
+
+</script>
+<script>
+/* ---------------- 声音引擎（纯合成，无音频文件） ---------------- */
+const AU = {
+  ctx: null, master: null, amb: null, started: false, hb: null, muted: false,
+  nodes: [], seqTimer: null, seqIndex: 0,
+  SEQ: [440, 440, 523.25, 440, 392, 440, 329.63, 293.66],
+
+  init() {
+    if (this.ctx) { this.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = this.muted ? 0 : 0.9;
+    this.master.connect(this.ctx.destination);
+  },
+  resume() { if (this.ctx && this.ctx.state === "suspended") this.ctx.resume(); },
+  setMuted(m) {
+    this.muted = m;
+    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.9, this.ctx.currentTime, 0.08);
+  },
+
+  /* 和声垫：音量很低，只负责空间。A 小调 */
+  pad() {
+    const c = this.ctx;
+    [[110, 0.085], [164.81, 0.056], [261.63, 0.042], [329.63, 0.027]].forEach((pair, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "sine";
+      o.frequency.value = pair[0];
+      g.gain.value = pair[1];
+      const lfo = c.createOscillator(), lg = c.createGain();
+      lfo.frequency.value = 0.07 + i * 0.02;
+      lg.gain.value = pair[1] * 0.45;
+      lfo.connect(lg); lg.connect(g.gain); lfo.start();
+      o.connect(g); g.connect(this.amb); o.start();
+      this.nodes.push(o, lfo);
+    });
+  },
+
+  /* 带音头的音符——有音头才叫音乐，没有就是电流声 */
+  note(freq, at, dur, vol) {
+    const c = this.ctx;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(freq, at);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(vol, at + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g); g.connect(this.amb);
+    o.start(at); o.stop(at + dur + 0.04);
+
+    const o2 = c.createOscillator(), g2 = c.createGain();
+    o2.type = "sine";
+    o2.frequency.setValueAtTime(freq * 2, at);
+    g2.gain.setValueAtTime(0.0001, at);
+    g2.gain.exponentialRampToValueAtTime(vol * 0.26, at + 0.012);
+    g2.gain.exponentialRampToValueAtTime(0.0001, at + dur * 0.7);
+    o2.connect(g2); g2.connect(this.amb);
+    o2.start(at); o2.stop(at + dur);
+  },
+
+  kick(at) {
+    const c = this.ctx;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(96, at);
+    o.frequency.exponentialRampToValueAtTime(52, at + 0.5);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(0.3, at + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.55);
+    o.connect(g); g.connect(this.amb);
+    o.start(at); o.stop(at + 0.6);
+  },
+
+  /* 每 0.5 秒一拍，16 拍一个循环 */
+  schedule() {
+    if (!this.started || !this.ctx) return;
+    const i = this.seqIndex % 16;
+    const at = this.ctx.currentTime + 0.03;
+    if (i % 2 === 0) {
+      const f = this.SEQ[(i / 2) % 8];
+      this.note(f, at, 0.26, 0.13);
+      this.note(f * 1.004, at, 0.24, 0.065);
+    }
+    if (i === 0 || i === 8) this.kick(at);
+    if (i === 5 || i === 13) this.note(1318.5, at, 1.3, 0.02);
+    this.seqIndex++;
+  },
+
+  start() {
+    this.init();
+    if (!this.ctx || this.started) return;
+    this.started = true;
+    const c = this.ctx;
+
+    this.amb = c.createGain();
+    this.amb.gain.value = 0;
+    this.amb.connect(this.master);
+    this.amb.gain.setTargetAtTime(0.85, c.currentTime, 1.2);
+
+    this.pad();
+
+    // 房间的空气：很轻的高频噪声，压掉数字味的死寂
+    const len = c.sampleRate * 2;
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 900; bp.Q.value = 0.7;
+    const ng = c.createGain(); ng.gain.value = 0.016;
+    src.connect(bp); bp.connect(ng); ng.connect(this.amb); src.start();
+    this.nodes.push(src);
+
+    this.seqIndex = 0;
+    this.schedule();
+    clearInterval(this.seqTimer);
+    this.seqTimer = setInterval(() => this.schedule(), 500);
+
+    this.beat();
+  },
+  beat() {
+    if (!this.ctx || !this.started) return;
+    const t = this.ctx.currentTime;
+    this.thump(t, 1); this.thump(t + 0.17, 0.5);
+    const el = S.t0 ? (Date.now() - S.t0) / 1000 : 0;
+    const gap = Math.max(0.62, 1.42 - el * 0.012);
+    this.hb = setTimeout(() => this.beat(), gap * 1000);
+  },
+  // 心跳频率抬到 150→96Hz，小喇叭才听得见；原来的 84→40 只有闷响
+  thump(t, v) {
+    const c = this.ctx;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(96, t + 0.17);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.3 * v, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+    o.connect(g); g.connect(this.amb); o.start(t); o.stop(t + 0.3);
+  },
+  stopBeat() {
+    clearTimeout(this.hb); this.hb = null;
+    clearInterval(this.seqTimer); this.seqTimer = null;
+  },
+  click() {
+    this.init(); if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(1180, t);
+    o.frequency.exponentialRampToValueAtTime(560, t + 0.05);
+    g.gain.setValueAtTime(0.16, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.09);
+  },
+  hit() {
+    this.init(); if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(120, t);
+    o.frequency.exponentialRampToValueAtTime(38, t + 0.5);
+    g.gain.setValueAtTime(0.6, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.65);
+  },
+  tone(freq, at, dur, vol, type) {
+    const c = this.ctx;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(vol, at + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g); g.connect(this.master); o.start(at); o.stop(at + dur + 0.05);
+  },
+  win() {
+    this.init(); if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [392, 587.3, 784].forEach((f, i) => this.tone(f, t + i * 0.11, 0.5, 0.18, "triangle"));
+  },
+  fail() {
+    this.init(); if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.tone(329.6, t, 0.4, 0.16, "triangle");
+    this.tone(220, t + 0.16, 0.7, 0.16, "triangle");
+  }
+};
+
+/* ---------------- 存档 ---------------- */
+const KEY = "md_progress_v3";
+const BLANK = { solved: {}, tries: {}, streak: { last: "", days: 0 }, bestStreak: 0, muted: false };
+function normalize(o) {
+  const n = JSON.parse(JSON.stringify(BLANK));
+  if (o && typeof o === "object") {
+    if (o.solved) n.solved = o.solved;
+    if (o.tries) n.tries = o.tries;
+    if (o.streak && typeof o.streak.days === "number") n.streak = o.streak;
+    if (typeof o.bestStreak === "number") n.bestStreak = o.bestStreak;
+    if (o.muted) n.muted = true;
+  }
+  return n;
+}
+let store = normalize(null);
+let storageOK = true;
+try {
+  const raw = localStorage.getItem(KEY) || localStorage.getItem("md_progress_v2");
+  if (raw) store = normalize(JSON.parse(raw));
+} catch (e) { storageOK = false; }
+AU.muted = store.muted;
+
+let S = { screen: "home", idx: 0, sel: -1, t0: 0, ms: 0, win: false, timer: null, backup: false };
+
+function save() {
+  if (!storageOK) return;
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { storageOK = false; }
+}
+function pad(n) { return n < 10 ? "0" + n : "" + n; }
+function fmt(ms) {
+  const s = ms / 1000;
+  return s < 60 ? s.toFixed(1) + " 秒" : Math.floor(s / 60) + " 分 " + pad(Math.round(s % 60)) + " 秒";
+}
+function solvedCount() { return Object.keys(store.solved).length; }
+function dayKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function bumpStreak() {
+  const now = new Date(), today = dayKey(now);
+  if (store.streak.last === today) return;
+  const yst = dayKey(new Date(now.getTime() - 86400000));
+  store.streak.days = store.streak.last === yst ? store.streak.days + 1 : 1;
+  store.streak.last = today;
+  if (store.streak.days > (store.bestStreak || 0)) store.bestStreak = store.streak.days;
+}
+function stars(t) { return "★★★★".slice(0, t); }
+function toggleMute() {
+  store.muted = !store.muted;
+  AU.setMuted(store.muted);
+  if (!store.muted) AU.start();
+  save(); render();
+}
+function exportSave() { S.backup = !S.backup; render(); }
+
+/* ---------------- 渲染 ---------------- */
+function render() {
+  const app = document.getElementById("app");
+  if (S.screen === "home") app.innerHTML = homeHTML();
+  else if (S.screen === "case") app.innerHTML = caseHTML();
+  else app.innerHTML = resultHTML();
+  window.scrollTo(0, 0);
+}
+
+function muteBtn() {
+  return `<div class="mute" onclick="toggleMute()">${store.muted ? "✕" : "♪"}</div>`;
+}
+
+function homeHTML() {
+  const done = solvedCount(), total = CASES.length;
+  const times = Object.values(store.solved);
+  const avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+  const next = CASES.findIndex(c => !store.solved[c.id]);
+  const rows = CASES.map((c, i) => {
+    const best = store.solved[c.id], tries = store.tries[c.id] || 0;
+    const label = best ? "已破 " + fmt(best) : (tries ? "失手 " + tries + " 次" : "未破");
+    const cls = best ? "done" : (tries ? "miss" : "");
+    return `<div class="row" onclick="openCase(${i})">
+      <div class="no">${c.id}</div>
+      <div class="nm">${c.title}</div>
+      <div class="st ${cls}">${label}</div>
+    </div>`;
+  }).join("");
+  return `<div class="topbar">
+      <div class="tag">卷 宗 库 · ${total} 案</div>
+      <div class="timer">${done} / ${total}</div>
+      ${muteBtn()}
+    </div>
+    <div class="screen">
+      <div class="brand-en">ONE MINUTE</div>
+      <div class="brand">一分钟侦探</div>
+      <div class="brand-sub">每天一案，六十秒。<br>三个人说了三句话，其中一句，不该说。</div>
+      <div class="brand-quote">每个案子只有一个破绽，也只有一句多余的话。</div>
+      <div class="stat-row">
+        <div class="stat"><b>${store.streak.days}</b><span>连续天数</span></div>
+        <div class="stat"><b>${avg ? fmt(avg) : "—"}</b><span>平均用时</span></div>
+        <div class="stat"><b>${done}<span style="font-size:12px;color:#5C554B">/${total}</span></b><span>已结案</span></div>
+      </div>
+      <button class="start-btn" onclick="openCase(${next < 0 ? 0 : next})">${done ? (next < 0 ? "重 新 开 卷" : "继 续 下 一 案") : "进 入 第 一 案"}</button>
+      <div class="archive">
+        <h3>卷 宗 柜</h3>
+        ${rows}
+        <div class="link" onclick="exportSave()">${S.backup ? "收起存档" : "导出存档"}</div>
+        ${S.backup ? `<textarea class="bak" readonly onclick="this.select()">${JSON.stringify(store)}</textarea>` : ""}
+      </div>
+    </div>`;
+}
+
+function caseHTML() {
+  const c = CASES[S.idx];
+  const clues = c.clues.map((t, i) =>
+    `<div class="clue"><i>0${i + 1}</i><span>${t}</span></div>`).join("");
+  const quotes = c.suspects.map((s, i) => `
+    <div class="quote ${S.sel === i ? "sel" : ""}" onclick="pick(${i})">
+      <div class="q-head"><span class="q-name">${s.name}</span><span class="q-role">${s.role}</span></div>
+      <div class="q-line">「${s.line}」</div>
+    </div>`).join("");
+  return `<div class="topbar">
+      <div class="back" onclick="goHome()">‹</div>
+      <div class="tag">${c.id}</div>
+      <div class="stars">${stars(c.tier)}</div>
+      <div class="timer" id="clock">0.0 秒</div>
+      ${muteBtn()}
+    </div>
+    <div class="screen">
+      <div class="case-title">${c.title}</div>
+      <div class="scene">${c.scene}</div>
+      <div class="clues">
+        <div class="sec-label">现 场 线 索</div>
+        ${clues}
+      </div>
+      <div class="quotes">
+        <div class="sec-label">三 份 口 供</div>
+        ${quotes}
+      </div>
+      <div class="confirm">
+        <button class="${S.sel >= 0 ? "on" : ""}" onclick="${S.sel >= 0 ? "submit()" : ""}">
+          ${S.sel >= 0 ? "就 是 这 句 话 · 提 交 指 认" : "选 出 那 个 说 了 谎 的 人"}
+        </button>
+      </div>
+    </div>`;
+}
+
+function resultHTML() {
+  const c = CASES[S.idx];
+  const g = c.suspects[c.guilty];
+  const hasNext = S.idx + 1 < CASES.length;
+  return `<div class="topbar">
+      <div class="back" onclick="goHome()">‹</div>
+      <div class="tag">${c.id}</div>
+      <div class="timer">${fmt(S.ms)}</div>
+      ${muteBtn()}
+    </div>
+    <div class="screen">
+      <div class="verdict">
+        <div class="big ${S.win ? "" : "fail"}">${S.win ? "破 案" : "没 破"}</div>
+        <div class="sub">${S.win ? "用时 " + fmt(S.ms) : "答案是 " + g.name + " · 用时 " + fmt(S.ms)}</div>
+      </div>
+
+      <div class="block key">
+        <div class="lbl">关 键 破 绽</div>
+        <p>${c.flaw}</p>
+      </div>
+
+      <div class="block">
+        <div class="lbl gray">他 说 的 那 句 话</div>
+        <p>「${g.line}」<br><span style="color:#6E665B;font-size:12.5px">—— ${g.name}，${g.role}</span></p>
+      </div>
+
+      <div class="block">
+        <div class="lbl gray">真 相</div>
+        <p>${c.truth}</p>
+      </div>
+
+      <div class="block">
+        <div class="lbl gray">动 机</div>
+        <p>${c.motive}</p>
+      </div>
+
+      <div class="share">
+        <div class="sh-no">${c.id} · 一分钟侦探</div>
+        <div class="sh-big">${S.win ? "我 " + fmt(S.ms) + " 破了这一案" : "这一案，我没破"}</div>
+        <div class="sh-note">答案不剧透 —— 同样的三句话，你也可以试试。</div>
+      </div>
+
+      <div class="actions">
+        ${hasNext
+          ? `<button class="primary" onclick="openCase(${S.idx + 1})">下 一 案</button>`
+          : `<button class="primary" onclick="goHome()">全 部 结 案</button>`}
+        <button onclick="openCase(${S.idx})">再 试 一 次</button>
+      </div>
+    </div>`;
+}
+
+/* ---------------- 交互 ---------------- */
+function pick(i) {
+  AU.click();
+  S.sel = (S.sel === i) ? -1 : i;
+  render();
+}
+
+function openCase(i) {
+  S.idx = i; S.sel = -1; S.screen = "case"; S.t0 = Date.now();
+  AU.start();
+  render();
+  clearInterval(S.timer);
+  S.timer = setInterval(() => {
+    const el = document.getElementById("clock");
+    if (!el) return;
+    const ms = Date.now() - S.t0;
+    el.textContent = fmt(ms);
+    el.classList.toggle("hot", ms > 45000);
+  }, 100);
+}
+
+function submit() {
+  const c = CASES[S.idx];
+  S.ms = Date.now() - S.t0;
+  clearInterval(S.timer);
+  S.win = (S.sel === c.guilty);
+  store.tries[c.id] = (store.tries[c.id] || 0) + 1;
+  if (S.win) {
+    const prev = store.solved[c.id];
+    if (!prev || S.ms < prev) store.solved[c.id] = S.ms;
+  }
+  bumpStreak();
+  save();
+  AU.hit();
+  setTimeout(() => { S.win ? AU.win() : AU.fail(); }, 340);
+  S.screen = "result";
+  render();
+}
+
+function goHome() { clearInterval(S.timer); S.screen = "home"; render(); }
+
+try {
+  render();
+  var _q = new URLSearchParams(location.search).get("case");
+  if (_q !== null) {
+    var _i = parseInt(_q, 10);
+    if (!isNaN(_i)) openCase(Math.min(Math.max(_i, 1), CASES.length) - 1);
+  }
+} catch (err) {
+  document.getElementById("app").innerHTML =
+    '<div class="screen"><div class="brand" style="font-size:19px">启动失败</div>' +
+    '<div class="brand-sub">' + (err && err.message ? err.message : err) + '</div></div>';
+}
+</script>
+</body>
+</html>
